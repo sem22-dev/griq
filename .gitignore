@@ -1,0 +1,35 @@
+
+# Ignore node_modules
+node_modules/
+
+# Ignore environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Ignore build files
+dist/
+.out/
+.next/
+build/
+
+# Ignore editor files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Ignore dependency lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
