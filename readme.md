@@ -1,29 +1,53 @@
-# NTNL - No Tunnel No Life
+# GRIQ 
 
-NTNL is a lightweight HTTP tunneling service that allows you to expose your local servers to the internet through secure tunnels.
+GRIQ is a lightweight HTTP tunneling service that allows you to expose your local servers to the internet through secure tunnels.
 
-![NTNL](https://via.placeholder.com/800x400?text=NTNL+Tunneling+Service)
+---
 
 ## Features
 
-- 🚀 **Expose local servers** to the internet instantly
-- 🔀 **Custom subdomains** for better branding
-- 📁 **Static file serving** built-in
-- 🔄 **Automatic reconnection** for reliable connections
-- 💻 **User-friendly CLI** with real-time status updates
+- 🚀 **Expose local servers** to the internet instantly  
+- 🔀 **Custom subdomains** for better branding  
+- 📁 **Static file serving** built-in  
+- 🔄 **Automatic reconnection** for reliable connections  
+- 💻 **User-friendly CLI** with real-time status updates  
+- 🌐 **WebSocket support** for real-time communication  
+- ⚡ **Lightweight client** with minimal dependencies  
 
-## Installation
+---
 
-**Coming soon!** The NTNL package will be available for installation soon.
+### Quick Install
+
+One-line installation:
+
+```bash
+curl -fsSL https://griq.site/install.sh | bash
+```
+
+Once installed, create a tunnel with:
+
+```bash
+griq http 3000    # Expose localhost:3000
+```
+
+This will give you a public URL like:
+
+```
+https://[random-subdomain].griq.site
+```
+
+---
 
 ## Usage
 
 **Stay tuned!** Detailed usage instructions will be provided once the package is published.
 
+---
+
 ## Project Structure
 
 ```
-/ntnl
+/GRIQ
   /cli
     - index.ts         # CLI entry point and commands
     - client.ts        # Client implementation
@@ -38,19 +62,26 @@ NTNL is a lightweight HTTP tunneling service that allows you to expose your loca
   - .gitignore         # Git ignore file
 ```
 
+---
+
 ## Roadmap
 
-- [ ] User authentication and authorization
-- [ ] HTTPS support
-- [ ] Custom domain mapping
-- [ ] Request/response logging
-- [ ] Rate limiting
-- [ ] API for programmatic access
+- [ ] User authentication and authorization  
+- [ ] HTTPS support  
+- [ ] Custom domain mapping  
+- [ ] Request/response logging  
+- [ ] Rate limiting  
+- [ ] API for programmatic access  
+
+---
 
 ## Security Notice
 
-⚠️ **Currently, NTNL does not include authentication.** Authentication will be added in a future update.
+⚠️ **Currently, GRIQ does not include authentication.** Authentication will be added in a future update.
+
+---
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
