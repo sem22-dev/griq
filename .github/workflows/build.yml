@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30  
+    timeout-minutes: 30
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -16,10 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python (macOS/Linux)
+        if: matrix.os != 'windows-latest'
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Use the latest Python 3.x version
+          python-version: '3.9'  # Use Python 3.9 for macOS and Linux
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -68,7 +69,7 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload binaries to release
+      - name: Upload Linux binary to release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
