@@ -15,6 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Use the latest Python 3.x version
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -29,11 +34,11 @@ jobs:
       - name: Package for platform
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            npm run package -- --target node18-linux-x64
+            npm run package:linux
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            npm run package -- --target node18-macos-x64
+            npm run package:macos
           else
-            npm run package -- --target node18-win-x64
+            npm run package:windows
           fi
 
       - name: Upload binaries as artifacts
