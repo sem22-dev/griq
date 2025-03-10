@@ -88,7 +88,7 @@ this.app.get('/install.sh', (req, res) => {
   res.send(`#!/bin/bash
 set -e
 # Define variables
-URL_PREFIX="https://github.com/sem22-dev/griq/releases/download/1.0"
+URL_PREFIX="https://github.com/sem22-dev/griq/releases/download/v1.0.0"
 INSTALL_DIR="/usr/local/bin"
 DEFAULT_SERVER="wss://griq.site/"
 
