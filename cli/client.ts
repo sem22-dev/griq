@@ -1,6 +1,4 @@
-
-
-
+import { gunzipSync } from 'zlib';
 import WebSocket from 'ws';
 import * as http from 'http';
 import { EventEmitter } from 'events';
@@ -14,6 +12,7 @@ export class TunnelClient extends EventEmitter {
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectTimeout?: NodeJS.Timeout;
+  private maxMessageSize: number = 1024 * 1024; // 1MB default max message size
 
   constructor(serverUrl: string, localPort: number, subdomain?: string) {
     super();
@@ -30,7 +29,6 @@ export class TunnelClient extends EventEmitter {
       this.emit('connected');
       console.log('Connected to tunnel server');
       
-      // Register with the server
       const registerMessage: RegisterMessage = {
         type: 'register',
         port: this.localPort,
@@ -88,7 +86,6 @@ export class TunnelClient extends EventEmitter {
   }
   
   private handleTunnelRequest(request: TunnelRequest): void {
-    // Forward the request to the local server
     const options: http.RequestOptions = {
       hostname: 'localhost',
       port: this.localPort,
@@ -98,59 +95,90 @@ export class TunnelClient extends EventEmitter {
     };
     
     const req = http.request(options, (res) => {
+      console.log(`[${request.id}] Response status:`, res.statusCode);
+      console.log(`[${request.id}] Response headers:`, res.headers);
+      
       const chunks: Buffer[] = [];
+      let totalSize = 0;
       
       res.on('data', (chunk) => {
-        chunks.push(Buffer.from(chunk));
+        console.log(`[${request.id}] Received chunk of size ${chunk.length} bytes`);
+        chunks.push(chunk);
+        totalSize += chunk.length;
       });
       
       res.on('end', () => {
-        const body = Buffer.concat(chunks);
-        const response: TunnelResponse = {
-          id: request.id,
-          statusCode: res.statusCode || 500,
-          headers: res.headers as Record<string, string>,
-          body
-        };
+        console.log(`[${request.id}] Response complete, total size: ${totalSize} bytes`);
         
-        const message: ClientMessage = {
-          type: 'tunnel',
-          data: response
-        };
-        
-        if (this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify(message));
-        } else {
-          console.error('WebSocket not open, unable to send response');
+        try {
+          const fullResponseBody = Buffer.concat(chunks);
+          
+          const isGzip = res.headers['content-encoding']?.toLowerCase() === 'gzip';
+          let decompressedBody: Buffer;
+          if (isGzip) {
+            decompressedBody = gunzipSync(fullResponseBody);
+            console.log(`[${request.id}] Decompressed gzip response, size: ${decompressedBody.length} bytes`);
+          } else {
+            decompressedBody = fullResponseBody;
+          }
+          
+          const response: TunnelResponse = {
+            id: request.id,
+            statusCode: res.statusCode || 500,
+            headers: this.cleanupHeaders(res.headers),
+            body: decompressedBody
+          };
+          
+          console.log(`[${request.id}] Sending complete response of ${decompressedBody.length} bytes`);
+          if (this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'tunnel', data: response }));
+          } else {
+            console.error(`[${request.id}] WebSocket closed, cannot send response`);
+          }
+        } catch (error) {
+          console.error(`[${request.id}] Error preparing response:`, error);
+          this.sendErrorResponse(request.id, 'Internal Server Error');
         }
+      });
+      
+      res.on('error', (error) => {
+        console.error(`[${request.id}] Response error:`, error);
+        this.sendErrorResponse(request.id, 'Bad Gateway');
       });
     });
     
     req.on('error', (error) => {
-      console.error('Error forwarding request:', error);
-      
-      const response: TunnelResponse = {
-        id: request.id,
-        statusCode: 502,
-        headers: { 'content-type': 'text/plain' },
-        body: Buffer.from('Bad Gateway')
-      };
-      
-      const message: ClientMessage = {
-        type: 'tunnel',
-        data: response
-      };
-      
-      if (this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify(message));
-      }
+      console.error(`[${request.id}] Request error:`, error);
+      this.sendErrorResponse(request.id, 'Bad Gateway');
     });
     
     if (request.body) {
       req.write(request.body);
     }
-    
     req.end();
+  }
+  
+  private cleanupHeaders(headers: http.IncomingHttpHeaders): Record<string, string> {
+    const cleanHeaders: Record<string, string> = {};
+    for (const [key, value] of Object.entries(headers)) {
+      if (value !== undefined) {
+        cleanHeaders[key] = Array.isArray(value) ? value.join(', ') : String(value);
+      }
+    }
+    return cleanHeaders;
+  }
+
+  private sendErrorResponse(requestId: string, message: string): void {
+    const response: TunnelResponse = {
+      id: requestId,
+      statusCode: 502,
+      headers: { 'content-type': 'text/plain' },
+      body: Buffer.from(message)
+    };
+    
+    if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type: 'tunnel', data: response }));
+    }
   }
   
   public getPublicUrl(): string {

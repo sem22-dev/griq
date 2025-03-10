@@ -1,5 +1,5 @@
 {
-  "name": "ntnl",
+  "name": "griq",
   "version": "0.1.0",
   "description": "A simple HTTP tunneling service",
   "main": "dist/index.js",

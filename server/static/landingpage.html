@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Griq - Simple Tunnel Service</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+        color: #24292e;
+      }
+      h1 {
+        color: #24292e;
+        margin-bottom: 8px;
+      }
+      .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .github-button {
+        display: inline-flex;
+        align-items: center;
+        background-color: #fafbfc;
+        border: 1px solid rgba(27, 31, 35, 0.15);
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        white-space: nowrap;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        text-decoration: none;
+        color: #24292e;
+        overflow: hidden;
+      }
+      .github-button:hover {
+        background-color: #f3f4f6;
+        border-color: rgba(27, 31, 35, 0.2);
+      }
+      .github-button-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        padding: 5px 12px;
+        border-right: 1px solid rgba(27, 31, 35, 0.15);
+      }
+      .github-button-text {
+        padding: 5px 12px;
+        display: flex;
+        align-items: center;
+      }
+      .github-logo {
+        margin-right: 5px;
+      }
+      .stats {
+        background: #f6f8fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 20px 0;
+        border: 1px solid #e1e4e8;
+      }
+      .install {
+        background: #f6f8fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 20px 0;
+        border: 1px solid #e1e4e8;
+      }
+      .code-block {
+        position: relative;
+        margin-bottom: 16px;
+      }
+      pre {
+        background: #f6f8fa;
+        padding: 16px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        border: 1px solid #e1e4e8;
+        margin: 0;
+      }
+      code {
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        background: #f6f8fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 13px;
+        border: 1px solid #e1e4e8;
+      }
+      .copy-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid #e1e4e8;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .copy-button:hover {
+        background: #ffffff;
+        border-color: #c8c9cb;
+      }
+      h2 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        border-bottom: 1px solid #eaecef;
+        padding-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-container">
+      <h1>Griq</h1>
+      <a href="https://github.com/yourusername/griq" class="github-button">
+        <span class="github-button-icon">
+          <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path>
+          </svg>
+        </span>
+        <span class="github-button-text">
+          <svg class="github-logo" height="16" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+          Star
+        </span>
+      </a>
+    </div>
+    
+    <p>Griq is a lightweight tunneling service that allows you to instantly share your localhost with the world.</p>
+
+    
+    <h2>Quick Install</h2>
+    <div class="install">
+      <p>One-line installation:</p>
+      <div class="code-block">
+        <pre><code>curl -fsSL https://griq.site/install.sh | bash</code></pre>
+        <button class="copy-button" onclick="copyToClipboard('curl -fsSL https://griq.site/install.sh | bash', this)">
+
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy
+        </button>
+      </div>
+      
+      <p>Once installed, create a tunnel with:</p>
+      <div class="code-block">
+        <pre><code>griq http 3000    # Expose localhost:3000</code></pre>
+        <button class="copy-button" onclick="copyToClipboard('griq http 3000', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy
+        </button>
+      </div>
+      <p>This will give you a public URL like <code>https://[random-subdomain].griq.site</code></p>
+    </div>
+    
+    <h2>Features</h2>
+    <ul>
+      <li>Expose any local port to the internet</li>
+      <li>Choose your subdomain or get a random one</li>
+      <li>WebSocket support</li>
+      <li>Lightweight client with minimal dependencies</li>
+    </ul>
+
+    <script>
+      // Set placeholder values for demonstration
+      document.getElementById('activeTunnels').textContent = "12";
+      document.getElementById('serverUptime').textContent = "342";
+      
+      function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text).then(() => {
+      button.textContent = 'Copied';
+      setTimeout(() => {
+        button.textContent = 'Copy';
+      }, 2000); // Reset text after 2 seconds
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+    });
+  }
+    </script>
+  </body>
+</html>

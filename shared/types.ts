@@ -37,3 +37,10 @@ export interface RegisterMessage {
     headers: Record<string, string>;
     body?: Buffer;
   }
+
+  export interface PendingRequest {
+    resolve: (response: TunnelResponse) => void;
+    reject: (error: Error) => void;
+    receivedChunks: boolean;
+    timer: NodeJS.Timeout;
+  }
