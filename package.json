@@ -12,9 +12,13 @@
     "start:client": "node dist/client.js",
     "dev:server": "ts-node server/index.ts",
     "dev:client": "ts-node cli/index.ts",
-    "package:linux": "pkg dist/cli/index.js --output dist/bin/griq-linux --target node18-linux-x64 --build",
-    "package:macos": "pkg dist/cli/index.js --output dist/bin/griq-macos --target node18-macos-x64 --build",
-    "package:windows": "pkg dist/cli/index.js --output dist/bin/griq-windows.exe --target node18-win-x64 --build"
+    "package:linux-amd64": "pkg dist/cli/index.js --output dist/bin/griq-linux-amd64 --target node18-linux-x64",
+    "package:linux-386": "pkg dist/cli/index.js --output dist/bin/griq-linux-386 --target node18-linux-x86",
+    "package:linux-arm": "pkg dist/cli/index.js --output dist/bin/griq-linux-arm --target node18-linux-arm",
+    "package:linux-arm64": "pkg dist/cli/index.js --output dist/bin/griq-linux-arm64 --target node18-linux-arm64",
+    "package:darwin-amd64": "pkg dist/cli/index.js --output dist/bin/griq-darwin-amd64 --target node18-macos-x64",
+    "package:darwin-arm64": "pkg dist/cli/index.js --output dist/bin/griq-darwin-arm64 --target node18-macos-arm64",
+    "package:all": "npm run package:linux-amd64 && npm run package:linux-386 && npm run package:linux-arm && npm run package:linux-arm64 && npm run package:darwin-amd64 && npm run package:darwin-arm64"
   },
   "dependencies": {
     "chalk": "^5.4.1",
