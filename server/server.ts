@@ -141,6 +141,8 @@ echo "📚 For more information, visit: https://github.com/sem22-dev/griq"
 `);
 });
 
+// Example if dist/bin is at the same level as your server directory
+this.app.use('/dist/bin', express.static(path.join(__dirname, '../dist/bin')));
     // Health check route
     this.app.get('/health', (req, res) => {
       res.json({

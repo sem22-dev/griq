@@ -1,6 +1,6 @@
 {
   "name": "griq",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A simple HTTP tunneling service",
   "main": "dist/index.js",
   "bin": {
@@ -11,17 +11,10 @@
     "start:server": "node dist/server.js",
     "start:client": "node dist/client.js",
     "dev:server": "ts-node server/index.ts",
-    "dev:client": "ts-node cli/index.ts",
-    "package:linux-amd64": "pkg dist/cli/index.js --output dist/bin/griq-linux-amd64 --target node18-linux-x64",
-    "package:linux-386": "pkg dist/cli/index.js --output dist/bin/griq-linux-386 --target node18-linux-x86",
-    "package:linux-arm": "pkg dist/cli/index.js --output dist/bin/griq-linux-arm --target node18-linux-arm",
-    "package:linux-arm64": "pkg dist/cli/index.js --output dist/bin/griq-linux-arm64 --target node18-linux-arm64",
-    "package:darwin-amd64": "pkg dist/cli/index.js --output dist/bin/griq-darwin-amd64 --target node18-macos-x64",
-    "package:darwin-arm64": "pkg dist/cli/index.js --output dist/bin/griq-darwin-arm64 --target node18-macos-arm64",
-    "package:all": "npm run package:linux-amd64 && npm run package:linux-386 && npm run package:linux-arm && npm run package:linux-arm64 && npm run package:darwin-amd64 && npm run package:darwin-arm64"
+    "dev:client": "ts-node cli/index.ts"
   },
   "dependencies": {
-    "chalk": "^5.4.1",
+    "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "express": "^4.18.2",
     "ora": "^8.2.0",
@@ -31,6 +24,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.8.10",
     "@types/ws": "^8.5.8",
+    "@vercel/ncc": "^0.38.3",
     "nexe": "^5.0.0-beta.4",
     "pkg": "^5.8.1",
     "ts-node": "^10.9.1",
