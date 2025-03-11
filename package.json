@@ -11,7 +11,8 @@
     "start:server": "node dist/server.js",
     "start:client": "node dist/client.js",
     "dev:server": "ts-node server/index.ts",
-    "dev:client": "ts-node cli/index.ts"
+    "dev:client": "ts-node cli/index.ts",
+    "package": "ncc build dist/cli/index.js -o dist/ncc"
   },
   "dependencies": {
     "chalk": "^4.1.2",
