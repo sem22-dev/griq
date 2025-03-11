@@ -33,14 +33,8 @@ griq http 3000    # Expose localhost:3000
 This will give you a public URL like:
 
 ```
-https://[random-subdomain].griq.site
+http://[random-subdomain].griq.site
 ```
-
----
-
-## Usage
-
-**Stay tuned!** Detailed usage instructions will be provided once the package is published.
 
 ---
 
