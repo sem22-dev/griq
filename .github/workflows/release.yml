@@ -5,8 +5,9 @@ on:
     tags:
       - 'v*.*.*'
 
+# Add permissions block
 permissions:
-  contents: write
+  contents: write  # Grants write access to create releases
 
 jobs:
   build:
@@ -22,21 +23,14 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm install pkg@latest -g
-      - run: |
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            pkg . --targets node18-linux-x64 --output griq
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            pkg . --targets node18-darwin-x64,node18-darwin-arm64 --output griq
-          fi
-      - name: Debug pkg output
-        run: ls -l
+      - run: pkg . --targets node18-linux-x64,node18-darwin-x64,node18-darwin-arm64 --output griq
       - name: Rename binaries with OS suffix
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            [ -f griq-linux-x64 ] && mv griq-linux-x64 griq-ubuntu || echo "griq-linux-x64 not found"
+            mv griq-linux-x64 griq-ubuntu
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            [ -f griq-darwin-x64 ] && mv griq-darwin-x64 griq-macos-x64 || echo "griq-darwin-x64 not found"
-            [ -f griq-darwin-arm64 ] && mv griq-darwin-arm64 griq-macos-arm64 || echo "griq-darwin-arm64 not found"
+            mv griq-darwin-x64 griq-macos-x64
+            mv griq-darwin-arm64 griq-macos-arm64
           fi
       - name: Create Release
         id: create_release
