@@ -3,7 +3,7 @@ name: Build and Release Binaries
 on:
   push:
     tags:
-      - 'v*.*.*' # Triggers on tags like v1.0.0
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
       - name: Rename binaries with OS suffix
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            mv griq-linux griq-ubuntu
+            mv griq-linux-x64 griq-ubuntu  # Match the exact output from pkg
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             mv griq-darwin-x64 griq-macos-x64
             mv griq-darwin-arm64 griq-macos-arm64
@@ -31,7 +31,7 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-        if: startsWith(github.ref, 'refs/tags/') # Only run on tags
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -41,7 +41,7 @@ jobs:
           prerelease: false
       - name: Upload Release Assets
         uses: actions/upload-release-asset@v1
-        if: startsWith(github.ref, 'refs/tags/') # Only run on tags
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
