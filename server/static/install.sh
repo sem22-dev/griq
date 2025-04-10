@@ -2,7 +2,7 @@
 set -e
 
 # Define variables
-VERSION="v1.0.2"
+VERSION="v1.0.3"
 URL_PREFIX="https://github.com/sem22-dev/griq/releases/download/$VERSION"
 INSTALL_DIR="/usr/local/bin"
 DEFAULT_SERVER="wss://griq.site/"
