@@ -1,5 +1,8 @@
 
+
 import { TunnelServer } from './server';
+import * as dotenv from 'dotenv';
+dotenv.config(); // Load .env file
 
 // Default port for the tunnel server
 const PORT = parseInt(process.env.PORT || '8000', 10);
