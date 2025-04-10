@@ -22,15 +22,23 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm install pkg@latest -g
-      - run: pkg . --targets node18-linux-x64,node18-darwin-x64,node18-darwin-arm64 --output griq
+      - run: |
+          # Debug: List current directory before pkg
+          ls -lh
+          # Adjust pkg targets based on OS
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            pkg . --targets node18-linux-x64 --output griq
+          else
+            pkg . --targets node18-darwin-x64 --output griq
+          fi
+          # Debug: List files after pkg
+          ls -lh
       - name: Rename binaries with OS suffix
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             [ -f griq ] && mv griq griq-ubuntu || echo "griq not found"
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            # Check for x64 and arm64, rename accordingly
+          else
             [ -f griq ] && mv griq griq-macos-x64 || echo "griq not found"
-            # Note: pkg might not generate a separate arm64 file; adjust if needed
           fi
       - name: Create Release
         id: create_release
@@ -44,8 +52,8 @@ jobs:
           draft: false
           prerelease: false
       - name: Upload Ubuntu Binary
+        if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -54,22 +62,12 @@ jobs:
           asset_name: griq-ubuntu
           asset_content_type: application/octet-stream
       - name: Upload macOS x64 Binary
+        if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: griq-macos-x64
           asset_name: griq-macos-x64
-          asset_content_type: application/octet-stream
-      - name: Upload macOS ARM64 Binary
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: griq-macos-arm64
-          asset_name: griq-macos-arm64
           asset_content_type: application/octet-stream
