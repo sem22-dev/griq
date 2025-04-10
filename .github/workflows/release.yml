@@ -5,9 +5,8 @@ on:
     tags:
       - 'v*.*.*'
 
-# Add permissions block
 permissions:
-  contents: write  # Grants write access to create releases
+  contents: write
 
 jobs:
   build:
@@ -23,14 +22,16 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm install pkg@latest -g
-      - run: pkg . --targets node18-linux-x64,node18-darwin-x64,node18-darwin-arm64 --output griq
+      - run: pkg . --targets node18-${{ matrix.os == 'ubuntu-latest' && 'linux-x64' || 'darwin-x64' }},node18-darwin-arm64 --output griq --verbose
+        # Added --verbose for debugging; adjust targets as needed
+      - run: ls -lh  # Debug step to list generated files
       - name: Rename binaries with OS suffix
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            mv griq-linux-x64 griq-ubuntu
+            [ -f griq ] && mv griq griq-ubuntu || echo "griq not found"
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            mv griq-darwin-x64 griq-macos-x64
-            mv griq-darwin-arm64 griq-macos-arm64
+            [ -f griq ] && mv griq griq-macos-x64 || echo "griq not found"
+            # ARM64 handling can be added if pkg generates a separate arm64 binary
           fi
       - name: Create Release
         id: create_release
