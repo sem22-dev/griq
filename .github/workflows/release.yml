@@ -28,6 +28,8 @@ jobs:
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             pkg . --targets node18-darwin-x64,node18-darwin-arm64 --output griq
           fi
+      - name: Debug pkg output
+        run: ls -l
       - name: Rename binaries with OS suffix
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
