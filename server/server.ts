@@ -57,40 +57,43 @@ export class TunnelServer {
         uptime: process.uptime()
       });
     });
-    
-// Home route (root domain only)
-this.app.get('/', (req, res) => {
-  const host = req.headers.host || '';
-  if (host === this.domainName.replace(/^https?:\/\//, '') || host === `www.${this.domainName.replace(/^https?:\/\//, '')}`) {
-    // Read the HTML file and send it as response
-    const htmlPath = path.join(__dirname, 'static', 'landingpage.html');
-    fs.readFile(htmlPath, 'utf8', (err, data) => {
-      if (err) {
-        res.status(500).send('Error loading page');
-        return;
+  
+    // Root route for landing page
+    this.app.get('/', (req, res) => {
+      const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+      console.log('Host header:', host); // Debug log
+      console.log('Domain name:', this.domainName); // Debug log
+  
+      if (host === this.domainName.replace(/^https?:\/\//, '') || host === `www.${this.domainName.replace(/^https?:\/\//, '')}`) {
+        const htmlPath = path.join(__dirname, 'static', 'landingpage.html');
+        console.log('Serving landing page from:', htmlPath); // Debug log
+        fs.readFile(htmlPath, 'utf8', (err, data) => {
+          if (err) {
+            console.error('Error reading landing page:', err);
+            res.status(500).send('Error loading page');
+            return;
+          }
+          const htmlWithValues = data
+            .replace('id="activeTunnels">--<', `id="activeTunnels">${this.activeTunnels}<`)
+            .replace('id="serverUptime">--<', `id="serverUptime">${Math.floor(process.uptime() / 60)}<`);
+          res.send(htmlWithValues);
+        });
+      } else {
+        console.log('Routing to tunnel handler for:', host);
+        this.tunnelRequestHandler(req, res);
       }
-      
-      // Replace any dynamic values if needed
-      const htmlWithValues = data
-        .replace('id="activeTunnels">--<', `id="activeTunnels">${this.activeTunnels}<`)
-        .replace('id="serverUptime">--<', `id="serverUptime">${Math.floor(process.uptime() / 60)}<`);
-      
-      res.send(htmlWithValues);
     });
-  } else {
-    this.tunnelRequestHandler(req, res); // Handle subdomain requests
-  }
-});
-
-// Add a route for the installation script
-this.app.get('/install.sh', (req, res) => {
-  const filePath = path.join(__dirname,'static', 'install.sh'); // Adjust the path if your install.sh file is in a different directory
-  res.setHeader('Content-Type', 'text/plain');
-  res.sendFile(filePath);
-});
-
-// Example if dist/bin is at the same level as your server directory
-this.app.use('/dist/bin', express.static(path.join(__dirname, '../dist/bin')));
+  
+    // Install script route
+    this.app.get('/install.sh', (req, res) => {
+      const filePath = path.join(__dirname, 'static', 'install.sh');
+      res.setHeader('Content-Type', 'text/plain');
+      res.sendFile(filePath);
+    });
+  
+    // Static files for dist/bin
+    this.app.use('/dist/bin', express.static(path.join(__dirname, '../dist/bin')));
+  
     // Health check route
     this.app.get('/health', (req, res) => {
       res.json({
@@ -98,8 +101,8 @@ this.app.use('/dist/bin', express.static(path.join(__dirname, '../dist/bin')));
         activeTunnels: this.activeTunnels
       });
     });
-    
-    // Catch-all route for tunnel requests
+  
+    // Catch-all route for tunnel requests (must be last)
     this.app.use('*', this.tunnelRequestHandler.bind(this));
   }
   
