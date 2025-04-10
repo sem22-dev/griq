@@ -2,6 +2,7 @@
   "name": "griq",
   "version": "0.1.1",
   "description": "A simple HTTP tunneling service",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "griq": "dist/cli/index.js"
