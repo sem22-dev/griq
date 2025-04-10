@@ -25,20 +25,22 @@ jobs:
       - run: |
           # Debug: List current directory before pkg
           ls -lh
-          # Adjust pkg targets based on OS
+          # Adjust pkg targets based on OS and enable ESM support
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            pkg . --targets node18-linux-x64 --output griq
+            echo "Building for ubuntu-latest with node18-linux-x64"
+            pkg . --targets node18-linux-x64 --output griq --es-modules || { echo "pkg failed"; exit 1; }
           else
-            pkg . --targets node18-darwin-x64 --output griq
+            echo "Building for macos-latest with node18-darwin-x64"
+            pkg . --targets node18-darwin-x64 --output griq --es-modules || { echo "pkg failed"; exit 1; }
           fi
           # Debug: List files after pkg
           ls -lh
       - name: Rename binaries with OS suffix
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            [ -f griq ] && mv griq griq-ubuntu || echo "griq not found"
+            [ -f griq ] && mv griq griq-ubuntu || { echo "griq not found for ubuntu"; exit 1; }
           else
-            [ -f griq ] && mv griq griq-macos-x64 || echo "griq not found"
+            [ -f griq ] && mv griq griq-macos-x64 || { echo "griq not found for macos"; exit 1; }
           fi
       - name: Create or Update Release
         id: create_release
