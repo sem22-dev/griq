@@ -1,5 +1,10 @@
-name: Build Binaries
-on: [push]
+name: Build and Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Triggers on tags like v1.0.0
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -15,7 +20,42 @@ jobs:
       - run: npm run build
       - run: npm install pkg@latest -g
       - run: pkg . --targets node18-linux-x64,node18-darwin-x64,node18-darwin-arm64 --output griq
-      - uses: actions/upload-artifact@v4
+      - name: Rename binaries with OS suffix
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            mv griq-linux griq-ubuntu
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            mv griq-darwin-x64 griq-macos-x64
+            mv griq-darwin-arm64 griq-macos-arm64
+          fi
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        if: startsWith(github.ref, 'refs/tags/') # Only run on tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: binaries-${{ matrix.os }}
-          path: griq-*
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        if: startsWith(github.ref, 'refs/tags/') # Only run on tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: griq-${{ matrix.os == 'ubuntu-latest' && 'ubuntu' || 'macos-x64' }}
+          asset_name: griq-${{ matrix.os == 'ubuntu-latest' && 'ubuntu' || 'macos-x64' }}
+          asset_content_type: application/octet-stream
+      - name: Upload macOS ARM64 Asset (if macOS)
+        if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: griq-macos-arm64
+          asset_name: griq-macos-arm64
+          asset_content_type: application/octet-stream
