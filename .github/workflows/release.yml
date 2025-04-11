@@ -24,6 +24,9 @@ jobs:
       - run: npm run package  # Bundle with ncc
       - run: npm install pkg@latest -g
       - run: |
+          # Debug: Current directory and pkg.json existence
+          pwd
+          ls -lh pkg.json
           # Debug: List current directory before pkg
           ls -lh
           # Adjust pkg targets based on OS with verbose output
