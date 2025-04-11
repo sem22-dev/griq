@@ -21,17 +21,18 @@ jobs:
           node-version: '18'
       - run: npm install
       - run: npm run build
+      - run: npm run package  # Bundle with ncc
       - run: npm install pkg@latest -g
       - run: |
           # Debug: List current directory before pkg
           ls -lh
-          # Adjust pkg targets based on OS and enable ESM support
+          # Adjust pkg targets based on OS
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             echo "Building for ubuntu-latest with node18-linux-x64"
-            pkg . --targets node18-linux-x64 --output griq --es-modules || { echo "pkg failed"; exit 1; }
+            pkg dist/ncc/index.js --targets node18-linux-x64 --output griq || { echo "pkg failed"; exit 1; }
           else
             echo "Building for macos-latest with node18-darwin-x64"
-            pkg . --targets node18-darwin-x64 --output griq --es-modules || { echo "pkg failed"; exit 1; }
+            pkg dist/ncc/index.js --targets node18-darwin-x64 --output griq || { echo "pkg failed"; exit 1; }
           fi
           # Debug: List files after pkg
           ls -lh
