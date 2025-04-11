@@ -1,11 +1,15 @@
 {
-    "scripts": ["/github/workspace/dist/ncc/index.js"],
+    "scripts": ["dist/ncc/index.js"],
     "assets": [
-      "/github/workspace/node_modules/**/*",
-      "/github/workspace/dist/**/*",
-      "/github/workspace/node_modules/ws/build/Release/*"
+      "node_modules/**/*",
+      "dist/**/*",
+      "node_modules/ws/build/Release/bufferutil.node",
+      "node_modules/ws/build/Release/validation.node",
+      "node_modules/express/**/*",
+      "node_modules/commander/**/*",
+      "node_modules/ora/**/*"
     ],
-    "targets": ["node18.17.0-macos-x64", "node18.17.0-linux-x64"],
+    "targets": ["node18-macos-x64", "node18-linux-x64"],
     "output": "griq",
     "nodeModules": true
   }

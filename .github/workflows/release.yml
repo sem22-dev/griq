@@ -24,23 +24,25 @@ jobs:
       - run: npm run package  # Bundle with ncc
       - run: npm install pkg@latest -g
       - run: |
-          # Debug: Current directory and pkg.json existence
+          # Debug: Current directory and file existence
           pwd
-          ls -lh pkg.json
+          ls -lh pkg.json dist/ncc/index.js || echo "One or both files not found"
           # Debug: List current directory before pkg
           ls -lh
-          # Adjust pkg targets based on OS with verbose output
+          # Try pkg with config file, fallback to direct file
+          cd $GITHUB_WORKSPACE
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             echo "Building for ubuntu-latest with node18-linux-x64"
-            pkg -c pkg.json --verbose || { echo "pkg failed"; exit 1; }
+            pkg -c pkg.json --verbose || { echo "pkg with config failed"; pkg $GITHUB_WORKSPACE/dist/ncc/index.js --targets node18-linux-x64 --output griq --verbose || { echo "pkg with direct file failed"; exit 1; }; }
           else
             echo "Building for macos-latest with node18-macos-x64"
-            pkg -c pkg.json --verbose || { echo "pkg failed"; exit 1; }
+            pkg -c pkg.json --verbose || { echo "pkg with config failed"; pkg $GITHUB_WORKSPACE/dist/ncc/index.js --targets node18-macos-x64 --output griq --verbose || { echo "pkg with direct file failed"; exit 1; }; }
           fi
           # Debug: List files after pkg
           ls -lh
       - name: Rename binaries with OS suffix
         run: |
+          cd $GITHUB_WORKSPACE
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             [ -f griq ] && mv griq griq-ubuntu || { echo "griq not found for ubuntu"; exit 1; }
           else
