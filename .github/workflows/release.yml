@@ -29,10 +29,10 @@ jobs:
           # Adjust pkg targets based on OS with verbose output
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             echo "Building for ubuntu-latest with node18-linux-x64"
-            pkg dist/ncc/index.js --targets node18-linux-x64 --output griq --verbose || { echo "pkg failed"; exit 1; }
+            pkg -c pkg.json --verbose || { echo "pkg failed"; exit 1; }
           else
             echo "Building for macos-latest with node18-macos-x64"
-            pkg dist/ncc/index.js --targets node18-macos-x64 --output griq --verbose || { echo "pkg failed"; exit 1; }
+            pkg -c pkg.json --verbose || { echo "pkg failed"; exit 1; }
           fi
           # Debug: List files after pkg
           ls -lh
