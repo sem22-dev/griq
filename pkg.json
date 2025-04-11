@@ -1,9 +1,9 @@
 {
-    "scripts": ["dist/ncc/index.js"],
+    "scripts": ["/github/workspace/dist/ncc/index.js"],
     "assets": [
-      "node_modules/**/*",
-      "dist/**/*",
-      "node_modules/ws/build/Release/*"
+      "/github/workspace/node_modules/**/*",
+      "/github/workspace/dist/**/*",
+      "/github/workspace/node_modules/ws/build/Release/*"
     ],
     "targets": ["node18.17.0-macos-x64", "node18.17.0-linux-x64"],
     "output": "griq",

@@ -24,13 +24,12 @@ jobs:
       - run: npm run package  # Bundle with ncc
       - run: npm install pkg@latest -g
       - run: |
-          # Debug: Current directory and file existence
+          # Debug: Current directory and pkg.json existence
           pwd
-          ls -lh pkg.json dist/ncc/index.js || echo "File not found"
+          ls -lh pkg.json
           # Debug: List current directory before pkg
           ls -lh
           # Adjust pkg targets based on OS with verbose output
-          cd $GITHUB_WORKSPACE  # Ensure root directory
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             echo "Building for ubuntu-latest with node18-linux-x64"
             pkg -c pkg.json --verbose || { echo "pkg failed"; exit 1; }
@@ -42,7 +41,6 @@ jobs:
           ls -lh
       - name: Rename binaries with OS suffix
         run: |
-          cd $GITHUB_WORKSPACE  # Ensure root directory
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             [ -f griq ] && mv griq griq-ubuntu || { echo "griq not found for ubuntu"; exit 1; }
           else
