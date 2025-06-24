@@ -138,16 +138,26 @@
       </a>
     </div>
     
-    <p>Griq is a lightweight tunneling service that allows you to instantly share your localhost with the world.</p>
+    <p>Griq is a lightweight tunneling service, now powered by Python, that allows you to instantly share your localhost with the world.</p>
 
-    
     <h2>Quick Install</h2>
     <div class="install">
-      <p>One-line installation:</p>
+      <p>One-line installation (Python required):</p>
+      <div class="code-block">
+        <pre><code>pip install git+https://github.com/sem22-dev/griq.git</code></pre>
+        <button class="copy-button" onclick="copyToClipboard('pip install git+https://github.com/sem22-dev/griq.git', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy
+        </button>
+      </div>
+      
+      <p>Alternative (prebuilt binary, if available):</p>
       <div class="code-block">
         <pre><code>curl -fsSL https://griq.site/install.sh | bash</code></pre>
         <button class="copy-button" onclick="copyToClipboard('curl -fsSL https://griq.site/install.sh | bash', this)">
-
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -175,24 +185,20 @@
       <li>Expose any local port to the internet</li>
       <li>Choose your subdomain or get a random one</li>
       <li>WebSocket support</li>
-      <li>Lightweight client with minimal dependencies</li>
+      <li>Lightweight Python-based client</li>
     </ul>
 
     <script>
-      // Set placeholder values for demonstration
-      document.getElementById('activeTunnels').textContent = "12";
-      document.getElementById('serverUptime').textContent = "342";
-      
       function copyToClipboard(text, button) {
-    navigator.clipboard.writeText(text).then(() => {
-      button.textContent = 'Copied';
-      setTimeout(() => {
-        button.textContent = 'Copy';
-      }, 2000); // Reset text after 2 seconds
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-    });
-  }
+        navigator.clipboard.writeText(text).then(() => {
+          button.textContent = 'Copied';
+          setTimeout(() => {
+            button.textContent = 'Copy';
+          }, 2000); // Reset text after 2 seconds
+        }).catch(err => {
+          console.error('Failed to copy: ', err);
+        });
+      }
     </script>
   </body>
 </html>
