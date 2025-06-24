@@ -1,24 +1,31 @@
-# GRIQ 
+# GRIQ
 
-GRIQ is a lightweight HTTP tunneling service that allows you to expose your local servers to the internet through secure tunnels.
+**GRIQ** is a lightweight HTTP tunneling service, now powered by Python, that allows you to expose your local servers to the internet through secure tunnels.
 
 ---
 
 ## Features
 
-- 🚀 **Expose local servers** to the internet instantly  
-- 🔀 **Custom subdomains** for better branding  
-- 📁 **Static file serving** built-in  
-- 🔄 **Automatic reconnection** for reliable connections  
-- 💻 **User-friendly CLI** with real-time status updates  
-- 🌐 **WebSocket support** for real-time communication  
-- ⚡ **Lightweight client** with minimal dependencies  
+* 🚀 Expose local servers to the internet instantly
+* 🔀 Custom subdomains for better branding
+* 🌐 WebSocket support for real-time communication
+* ⚡ Lightweight Python-based client with minimal dependencies
+* 🔄 Automatic reconnection for reliable connections
+* 💻 User-friendly CLI with real-time status updates
 
 ---
 
-### Quick Install
+## Quick Install
 
-One-line installation:
+GRIQ requires **Python 3** and **pip**. Choose your preferred installation method:
+
+### Via pip (Recommended)
+
+```bash
+pip3 install git+https://github.com/sem22-dev/griq.git
+```
+
+### Via Install Script (Alternative)
 
 ```bash
 curl -fsSL https://griq.site/install.sh | bash
@@ -33,7 +40,7 @@ griq http 3000    # Expose localhost:3000
 This will give you a public URL like:
 
 ```
-http://[random-subdomain].griq.site
+https://[random-subdomain].griq.site
 ```
 
 ---
@@ -42,40 +49,45 @@ http://[random-subdomain].griq.site
 
 ```
 /GRIQ
-  /cli
-    - index.ts         # CLI entry point and commands
-    - client.ts        # Client implementation
+  /client
+    - __init__.py      # Python package marker
+    - cli.py           # CLI entry point and commands
+    - client.py        # Client implementation
   /server
     - index.ts         # Server entry point
     - server.ts        # Server implementation
   /shared
     - types.ts         # Shared type definitions
     - utils.ts         # Shared utility functions
-  - package.json       # Main package file
+  - setup.py           # Python package setup
   - README.md          # Documentation
   - .gitignore         # Git ignore file
+  - install.sh         # Installation script
 ```
 
 ---
 
 ## Roadmap
 
-- [ ] User authentication and authorization  
-- [ ] HTTPS support  
-- [ ] Custom domain mapping  
-- [ ] Request/response logging  
-- [ ] Rate limiting  
-- [ ] API for programmatic access  
+* User authentication and authorization
+* HTTPS support
+* Custom domain mapping
+* Request/response logging
+* Rate limiting
+* API for programmatic access
+* Support for serving static files
 
 ---
 
 ## Security Notice
 
-⚠️ **Currently, GRIQ does not include authentication.** Authentication will be added in a future update.
+⚠️ **Currently, GRIQ does not include authentication. Authentication will be added in a future update.**
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request or open an issue on GitHub.
+
+---
 
