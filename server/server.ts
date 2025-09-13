@@ -3,6 +3,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { ClientMessage, RegisterMessage, ServerMessage, TunnelRequest, TunnelResponse } from '../shared/types';
 import { generateId, generateSubdomain } from '../shared/utils';
+import { RateLimiter, TunnelRateLimiter } from '../middleware/rateLimiter';
 import http from "http";
 import path from 'path';
 import fs from "fs"
@@ -15,8 +16,16 @@ export class TunnelServer {
   private domainName: string;
   private activeTunnels: number = 0;
   
+  // Rate limiting
+  private ipRateLimiter: RateLimiter;
+  private tunnelRateLimiter: TunnelRateLimiter;
+  
   constructor(options: { port: number, domainName: string }) {
     this.domainName = options.domainName;
+    
+    // Initialize rate limiters
+    this.ipRateLimiter = new RateLimiter(60 * 1000, 60); // 60 requests per minute
+    this.tunnelRateLimiter = new TunnelRateLimiter();
     
     // Create Express app
     this.app = express();
@@ -31,6 +40,9 @@ export class TunnelServer {
     }));
     
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+    
+    // Add rate limiting middleware
+    this.app.use(this.ipRateLimiter.middleware());
     
     // Add routes
     this.setupRoutes();
@@ -54,7 +66,26 @@ export class TunnelServer {
     this.app.get('/api/stats', (req, res) => {
       res.json({
         activeTunnels: this.activeTunnels,
-        uptime: process.uptime()
+        uptime: process.uptime(),
+        rateLimitStats: {
+          ip: this.ipRateLimiter.getStats(),
+          tunnel: this.tunnelRateLimiter.getStats()
+        }
+      });
+    });
+    
+    // Rate limit status endpoint
+    this.app.get('/api/rate-limit-status', (req, res) => {
+      const clientIp = this.extractClientIp(req);
+      const result = this.ipRateLimiter.checkLimit(clientIp);
+      
+      res.json({
+        ip: clientIp,
+        limits: {
+          remaining: result.remaining,
+          resetTime: result.resetTime,
+          retryAfter: result.retryAfter
+        }
       });
     });
   
@@ -107,15 +138,16 @@ export class TunnelServer {
   }
   
   private setupWebSocketHandlers() {
-    this.wss.on('connection', (ws: WebSocket) => {
-      console.log('New client connected');
+    this.wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
+      const clientIp = this.extractClientIp(req as any);
+      console.log('New client connected from IP:', clientIp);
       
       ws.on('message', (data: WebSocket.Data) => {
         try {
           const message = JSON.parse(data.toString()) as ClientMessage;
           
           if (message.type === 'register') {
-            this.registerClient(ws, message as RegisterMessage);
+            this.registerClient(ws, message as RegisterMessage, clientIp);
           } else if (message.type === 'tunnel') {
             this.handleTunnelResponse(message.data as TunnelResponse);
           }
@@ -130,6 +162,8 @@ export class TunnelServer {
           if (client === ws) {
             this.clients.delete(subdomain);
             this.activeTunnels--;
+            // Clean up rate limiting
+            this.tunnelRateLimiter.removeTunnelConnection(clientIp, subdomain);
             console.log(`Client with subdomain ${subdomain} disconnected`);
             break;
           }
@@ -164,8 +198,6 @@ export class TunnelServer {
     ws.send(JSON.stringify(errorMessage));
   }
   
-  // In the TunnelServer class, update/replace these methods:
-
   private tunnelRequestHandler(req: express.Request, res: express.Response): void {
     const host = req.headers.host || '';
     const subdomain = host.split('.')[0];
@@ -177,6 +209,17 @@ export class TunnelServer {
     if (!client) {
       console.log(`No client found for subdomain: ${subdomain}`);
       res.status(404).send('Tunnel not found');
+      return;
+    }
+    
+    // Check client-specific rate limit
+    if (!this.tunnelRateLimiter.checkClientRequest(subdomain)) {
+      console.log(`Rate limit exceeded for tunnel: ${subdomain}`);
+      res.status(429).json({
+        error: 'Tunnel rate limit exceeded',
+        message: `Too many requests to ${subdomain}. Try again later.`,
+        subdomain
+      });
       return;
     }
     
@@ -199,8 +242,8 @@ export class TunnelServer {
         timer: setTimeout(() => {
           console.log(`Request ${tunnelRequest.id} timed out after 120s`);
           this.getPendingRequests(client).delete(tunnelRequest.id);
-          client.off('message', handleMessage); // Remove message listener
-          client.off('close', handleClose); // Remove close listener
+          client.off('message', handleMessage);
+          client.off('close', handleClose);
           resolve({
             id: tunnelRequest.id,
             statusCode: 504,
@@ -219,8 +262,8 @@ export class TunnelServer {
             const response = message.data as TunnelResponse;
             clearTimeout(pendingRequest.timer);
             this.getPendingRequests(client).delete(tunnelRequest.id);
-            client.off('message', handleMessage); // Remove message listener
-            client.off('close', handleClose); // Remove close listener
+            client.off('message', handleMessage);
+            client.off('close', handleClose);
             resolve(response);
           }
         } catch (error) {
@@ -231,8 +274,8 @@ export class TunnelServer {
       const handleClose = () => {
         clearTimeout(pendingRequest.timer);
         this.getPendingRequests(client).delete(tunnelRequest.id);
-        client.off('message', handleMessage); // Remove message listener
-        client.off('close', handleClose); // Remove close listener
+        client.off('message', handleMessage);
+        client.off('close', handleClose);
         resolve({
           id: tunnelRequest.id,
           statusCode: 502,
@@ -292,56 +335,91 @@ export class TunnelServer {
     }
   }
 
-// Helper method to clean up headers
-private cleanupHeaders(headers: http.IncomingHttpHeaders): Record<string, string> {
-  const cleanHeaders: Record<string, string> = {};
-  
-  for (const [key, value] of Object.entries(headers)) {
-    if (value !== undefined) {
-      // Skip internal headers that shouldn't be forwarded
-      if (!['host', 'connection', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions', 'sec-websocket-protocol', 'upgrade'].includes(key.toLowerCase())) {
-        cleanHeaders[key] = Array.isArray(value) ? value.join(', ') : String(value);
+  // Helper method to clean up headers
+  private cleanupHeaders(headers: http.IncomingHttpHeaders): Record<string, string> {
+    const cleanHeaders: Record<string, string> = {};
+    
+    for (const [key, value] of Object.entries(headers)) {
+      if (value !== undefined) {
+        // Skip internal headers that shouldn't be forwarded
+        if (!['host', 'connection', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions', 'sec-websocket-protocol', 'upgrade'].includes(key.toLowerCase())) {
+          cleanHeaders[key] = Array.isArray(value) ? value.join(', ') : String(value);
+        }
+      }
+    }
+    
+    return cleanHeaders;
+  }
+
+  // Helper method to extract client IP
+  private extractClientIp(req: any): string {
+    const forwarded = req.headers['x-forwarded-for'];
+    const realIp = req.headers['x-real-ip'];
+    const cfConnectingIp = req.headers['cf-connecting-ip'];
+    
+    let ip = (cfConnectingIp || realIp || forwarded || req.socket.remoteAddress) as string;
+    
+    if (ip && ip.includes(',')) {
+      ip = ip.split(',')[0].trim();
+    }
+    
+    return ip || 'unknown';
+  }
+
+  // Update the handleTunnelResponse method
+  private handleTunnelResponse(response: TunnelResponse): void {
+    for (const [, client] of this.clients.entries()) {
+      const pendingRequests = this.getPendingRequests(client);
+      const pendingRequest = pendingRequests.get(response.id);
+      
+      if (pendingRequest) {
+        // Clear the timeout to prevent it from firing
+        clearTimeout(pendingRequest.timer);
+        
+        // Resolve the promise with the response
+        pendingRequest.resolve(response);
+        
+        // Remove the request from pending
+        pendingRequests.delete(response.id);
+        
+        break;
       }
     }
   }
-  
-  return cleanHeaders;
-}
 
-// Update the handleTunnelResponse method
-private handleTunnelResponse(response: TunnelResponse): void {
-  for (const [, client] of this.clients.entries()) {
-    const pendingRequests = this.getPendingRequests(client);
-    const pendingRequest = pendingRequests.get(response.id);
-    
-    if (pendingRequest) {
-      // Clear the timeout to prevent it from firing
-      clearTimeout(pendingRequest.timer);
-      
-      // Resolve the promise with the response
-      pendingRequest.resolve(response);
-      
-      // Remove the request from pending
-      pendingRequests.delete(response.id);
-      
-      break;
+  // Update the getPendingRequests method
+  private getPendingRequests(client: WebSocket): Map<string, any> {
+    // @ts-ignore - Using a custom property to store pending requests
+    if (!client.pendingRequests) {
+      // @ts-ignore
+      client.pendingRequests = new Map();
     }
-  }
-}
-
-// Update the getPendingRequests method
-private getPendingRequests(client: WebSocket): Map<string, any> {
-  // @ts-ignore - Using a custom property to store pending requests
-  if (!client.pendingRequests) {
+    
     // @ts-ignore
-    client.pendingRequests = new Map();
+    return client.pendingRequests;
   }
-  
-  // @ts-ignore
-  return client.pendingRequests;
-}
 
-  private registerClient(ws: WebSocket, message: RegisterMessage): void {
+  private registerClient(ws: WebSocket, message: RegisterMessage, clientIp: string): void {
+    // Check subdomain creation rate limit
+    if (!this.tunnelRateLimiter.checkSubdomainCreation(clientIp)) {
+      const errorMessage: ServerMessage = {
+        type: 'error',
+        message: 'Subdomain creation rate limit exceeded. Try again later.'
+      };
+      ws.send(JSON.stringify(errorMessage));
+      return;
+    }
+    
+    // Check concurrent tunnel limit
+    if (!this.tunnelRateLimiter.checkConcurrentTunnels(clientIp)) {
+      const errorMessage: ServerMessage = {
+        type: 'error',
+        message: 'Maximum concurrent tunnels exceeded for your IP address.'
+      };
+      ws.send(JSON.stringify(errorMessage));
+      return;
+    }
+    
     let subdomain = message.subdomain;
     
     if (!subdomain) {
@@ -360,23 +438,34 @@ private getPendingRequests(client: WebSocket): Map<string, any> {
     this.clients.set(subdomain, ws);
     this.activeTunnels++;
     
+    // Track for rate limiting
+    this.tunnelRateLimiter.addTunnelConnection(clientIp, subdomain);
+    
     const registeredMessage: ServerMessage = {
       type: 'registered',
-      url: `https://${subdomain}.${this.domainName.replace(/^https?:\/\//, '')}` // Correct URL format
+      url: `https://${subdomain}.${this.domainName.replace(/^https?:\/\//, '')}`
     };
     
     ws.send(JSON.stringify(registeredMessage));
-    console.log(`Client registered with subdomain: ${subdomain}`);
+    console.log(`Client registered with subdomain: ${subdomain} from IP: ${clientIp}`);
   }
 
   public getStats() {
     return {
       activeTunnels: this.activeTunnels,
-      uptime: process.uptime()
+      uptime: process.uptime(),
+      rateLimitStats: {
+        ip: this.ipRateLimiter.getStats(),
+        tunnel: this.tunnelRateLimiter.getStats()
+      }
     };
   }
   
   public close(): void {
+    // Clean up rate limiters
+    this.ipRateLimiter.destroy();
+    this.tunnelRateLimiter.destroy();
+    
     this.server.close();
     this.wss.close();
   }
