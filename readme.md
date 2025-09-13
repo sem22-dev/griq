@@ -1,6 +1,6 @@
 # GRIQ
 
-**GRIQ** is a lightweight HTTP tunneling service, now powered by Python, that allows you to expose your local servers to the internet through secure tunnels.
+**GRIQ** is a lightweight HTTP tunneling service that allows you to expose your local servers to the internet through secure tunnels.
 
 ---
 
